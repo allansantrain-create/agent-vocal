@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Note Vocale"/>
+<title>Note Vocale</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: #2a2a3a;
+    --accent: #7c6aff;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --red: #f87171;
+    --text: #f1f0ff;
+    --muted: #6b6a8a;
+    --subtle: #2e2d45;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: env(safe-area-inset-top, 48px) 20px env(safe-area-inset-bottom, 32px);
+  }
+
+  /* ── Écran de connexion ── */
+  #setup-screen {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80svh;
+    gap: 0;
+  }
+  .setup-icon { font-size: 52px; margin-bottom: 20px; }
+  .setup-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .setup-sub {
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+  .setup-card {
+    width: 100%;
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 24px;
+    border: 1px solid var(--border);
+  }
+  .setup-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+  .setup-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: monospace;
+    outline: none;
+    transition: border-color .2s;
+    letter-spacing: 0.5px;
+  }
+  .setup-input:focus { border-color: var(--accent); }
+  .setup-input::placeholder { color: var(--muted); font-family: inherit; letter-spacing: 0; }
+  .setup-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .setup-hint a { color: var(--accent2); text-decoration: none; }
+  .setup-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), #5b48e8);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 16px rgba(124,106,255,.4);
+    transition: all .2s;
+  }
+  .setup-btn:active { transform: scale(.98); }
+  .setup-error {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #1a0505;
+    border: 1px solid #7f1d1d;
+    border-radius: 10px;
+    color: var(--red);
+    font-size: 13px;
+  }
+
+  /* ── App principale ── */
+  #app-screen { display: none; width: 100%; flex-direction: column; align-items: center; }
+
+  .header { text-align: center; margin-bottom: 32px; padding-top: 8px; }
+  .header-tag { font-size: 10px; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
+  .header h1 {
+    font-size: 30px; font-weight: 700; letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header p { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.5; }
+
+  .card {
+    width: 100%; max-width: 400px;
+    background: var(--surface);
+    border-radius: 24px; padding: 24px;
+    border: 1px solid var(--border);
+  }
+
+  .tabs {
+    display: flex; background: var(--bg);
+    border-radius: 14px; padding: 4px; margin-bottom: 24px; gap: 4px;
+  }
+  .tab {
+    flex: 1; padding: 10px; border-radius: 10px; border: none;
+    background: transparent; color: var(--muted);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .2s; font-family: inherit;
+  }
+  .tab.active { background: var(--accent); color: #fff; box-shadow: 0 2px 12px rgba(124,106,255,.4); }
+
+  .mic-zone { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+  .mic-ring {
+    position: relative; width: 110px; height: 110px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mic-ring.active::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,106,255,.2), transparent 70%);
+    animation: breathe 2s ease-in-out infinite;
+  }
+  @keyframes breathe { 0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.2);opacity:1} }
+
+  .mic-btn {
+    width: 84px; height: 84px; border-radius: 50%; border: none;
+    background: linear-gradient(145deg, var(--accent), #5b48e8);
+    color: #fff; font-size: 30px; cursor: pointer;
+    box-shadow: 0 4px 24px rgba(124,106,255,.5);
+    transition: all .2s; position: relative; z-index: 1;
+  }
+  .mic-btn:active { transform: scale(.95); }
+  .mic-btn.recording {
+    background: linear-gradient(145deg, #ef4444, #dc2626);
+    animation: pulseMic 1.5s ease-in-out infinite;
+  }
+  .mic-btn:disabled { background: var(--subtle); box-shadow: none; cursor: not-allowed; }
+  @keyframes pulseMic {
+    0%,100% { box-shadow: 0 4px 24px rgba(239,68,68,.5), 0 0 0 0 rgba(239,68,68,.2); }
+    50% { box-shadow: 0 4px 24px rgba(239,68,68,.5), 0 0 0 18px rgba(239,68,68,.0); }
+  }
+
+  .wave { display: none; align-items: center; gap: 3px; height: 28px; }
+  .wave.active { display: flex; }
+  .wave-bar { width: 3px; border-radius: 99px; background: var(--accent2); animation: waveAnim 1s ease-in-out infinite alternate; }
+  @keyframes waveAnim { 0%{height:4px;opacity:.3} 100%{height:26px;opacity:1} }
+  .timer { font-size: 12px; color: var(--red); font-variant-numeric: tabular-nums; font-weight: 600; margin-left: 8px; display: none; }
+
+  .mic-hint { color: var(--muted); font-size: 13px; text-align: center; line-height: 1.6; }
+  .mic-hint em { display: block; font-style: normal; font-size: 11px; color: var(--subtle); margin-top: 4px; }
+
+  .mic-error-box {
+    display: none; background: #1a1008; border: 1px solid #78350f;
+    border-radius: 16px; padding: 18px; width: 100%; text-align: center;
+  }
+  .mic-error-title { font-weight: 700; color: #fbbf24; font-size: 14px; margin: 8px 0; }
+  .mic-error-text { color: #d97706; font-size: 12px; line-height: 1.7; margin-bottom: 14px; }
+  .mic-error-text ol { text-align: left; margin: 6px 0 0 16px; }
+  .btn-retry { padding: 10px 16px; border-radius: 10px; border: none; background: #92400e; color: #fef3c7; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; margin-right: 8px; }
+  .btn-switch-text { padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; font-family: inherit; }
+
+  .text-zone { display: none; }
+  textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 16px; color: var(--text);
+    font-size: 15px; line-height: 1.6; resize: none; outline: none;
+    font-family: inherit; transition: border-color .2s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+  .send-btn {
+    width: 100%; margin-top: 10px; padding: 14px; border-radius: 14px;
+    border: none; background: linear-gradient(135deg, var(--accent), #5b48e8);
+    color: #fff; font-weight: 700; font-size: 15px; cursor: pointer;
+    font-family: inherit; box-shadow: 0 4px 16px rgba(124,106,255,.4); transition: all .2s;
+  }
+  .send-btn:active { transform: scale(.98); }
+  .send-btn:disabled { background: var(--subtle); box-shadow: none; cursor: not-allowed; }
+
+  .transcript-box { display: none; margin-top: 18px; background: var(--bg); border-radius: 14px; padding: 14px 16px; border: 1px solid #1e2d5a; }
+  .box-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+  .transcript-text { font-size: 14px; color: #94a3b8; line-height: 1.6; }
+
+  .processing { display: none; margin-top: 18px; align-items: center; gap: 10px; color: var(--accent2); font-size: 14px; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--accent2); border-top-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .result-box { display: none; margin-top: 18px; border-radius: 16px; overflow: hidden; border: 1px solid #1d4ed8; animation: fadeUp .3s ease; }
+  .result-header { background: #0f2557; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .result-header span { font-weight: 600; font-size: 14px; color: var(--accent2); }
+  .result-body { background: var(--bg); padding: 14px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .field-value { font-size: 13px; color: var(--text); margin-top: 3px; }
+  .field-full { grid-column: 1 / -1; }
+
+  .error-box { display: none; margin-top: 16px; background: #1a0505; border: 1px solid #7f1d1d; border-radius: 14px; padding: 14px 16px; color: var(--red); font-size: 13px; line-height: 1.5; }
+
+  .reset-btn {
+    display: none; margin-top: 14px; width: 100%; padding: 12px;
+    border-radius: 12px; border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+
+  .history { width: 100%; max-width: 400px; margin-top: 24px; }
+  .history-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; padding-left: 4px; }
+  .history-item {
+    background: var(--surface); border-radius: 14px; padding: 14px 16px;
+    margin-bottom: 8px; border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; animation: fadeUp .3s ease;
+  }
+  .history-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .history-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .logout-btn {
+    margin-top: 28px;
+    background: none; border: none; color: var(--subtle);
+    font-size: 12px; cursor: pointer; font-family: inherit;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  footer { margin-top: 28px; font-size: 11px; color: var(--subtle); text-align: center; padding-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ -->
+<!--  ÉCRAN DE CONNEXION                   -->
+<!-- ══════════════════════════════════════ -->
+<div id="setup-screen">
+  <div class="setup-icon">🔑</div>
+  <div class="setup-title">Agent vocal</div>
+  <p class="setup-sub">Entre ta clé Groq pour démarrer.<br>Elle sera sauvegardée sur cet appareil.</p>
+
+  <div class="setup-card">
+    <div class="setup-label">Clé API Groq</div>
+    <input
+      class="setup-input"
+      id="groq-key-input"
+      type="password"
+      placeholder="gsk_..."
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+    />
+    <div class="setup-hint">
+      Récupère ta clé sur <a href="https://console.groq.com" target="_blank">console.groq.com</a> → API Keys.<br>
+      Elle commence par <strong>gsk_</strong> et c'est 100% gratuit.
+    </div>
+    <div class="setup-error" id="setup-error">Clé invalide — elle doit commencer par gsk_</div>
+    <button class="setup-btn" onclick="saveKey()">Démarrer →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!--  APP PRINCIPALE                       -->
+<!-- ══════════════════════════════════════ -->
+<div id="app-screen">
+
+  <div class="header">
+    <div class="header-tag">Agent personnel · Allan</div>
+    <h1>Note vocale</h1>
+    <p>Parle ou écris — je crée le rappel<br>dans ton Google Calendar.</p>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" onclick="switchMode('voice')">🎙 Vocal</button>
+      <button class="tab" onclick="switchMode('text')">⌨️ Texte</button>
+    </div>
+
+    <!-- Zone vocale -->
+    <div id="voice-zone" class="mic-zone">
+      <div id="mic-error-box" class="mic-error-box">
+        <div style="font-size:24px">🔒</div>
+        <div class="mic-error-title">Micro bloqué</div>
+        <div class="mic-error-text">
+          <ol>
+            <li>Appuie sur 🔒 dans la barre d'adresse</li>
+            <li>Autorise le micro</li>
+            <li>Recharge la page</li>
+          </ol>
+        </div>
+        <button class="btn-retry" onclick="retryMic()">🔄 Réessayer</button>
+        <button class="btn-switch-text" onclick="switchMode('text')">⌨️ Mode texte</button>
+      </div>
+
+      <div class="mic-ring" id="mic-ring">
+        <button class="mic-btn" id="mic-btn" onclick="toggleRecording()">🎙</button>
+      </div>
+
+      <div style="display:flex;align-items:center;">
+        <div class="wave" id="wave">
+          <div class="wave-bar" style="animation-delay:.00s"></div>
+          <div class="wave-bar" style="animation-delay:.08s"></div>
+          <div class="wave-bar" style="animation-delay:.16s"></div>
+          <div class="wave-bar" style="animation-delay:.24s"></div>
+          <div class="wave-bar" style="animation-delay:.32s"></div>
+          <div class="wave-bar" style="animation-delay:.40s"></div>
+          <div class="wave-bar" style="animation-delay:.48s"></div>
+          <div class="wave-bar" style="animation-delay:.56s"></div>
+          <div class="wave-bar" style="animation-delay:.64s"></div>
+          <div class="wave-bar" style="animation-delay:.72s"></div>
+        </div>
+        <span class="timer" id="timer">00:00</span>
+      </div>
+
+      <p class="mic-hint" id="mic-hint">
+        Appuie pour dicter.<br>
+        <em>« Rappelle-moi d'appeler Luc demain à 16h »</em>
+      </p>
+    </div>
+
+    <!-- Zone texte -->
+    <div id="text-zone" class="text-zone">
+      <textarea id="text-input" rows="3"
+        placeholder="Ex : Rappelle-moi de préparer la séance de demain soir…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitText();}"></textarea>
+      <button class="send-btn" id="send-btn" onclick="submitText()">Envoyer →</button>
+    </div>
+
+    <!-- Transcript -->
+    <div class="transcript-box" id="transcript-box">
+      <div class="box-label">Ce que j'ai compris</div>
+      <div class="transcript-text" id="transcript-text"></div>
+    </div>
+
+    <!-- Processing -->
+    <div class="processing" id="processing">
+      <div class="spinner"></div>
+      <span id="processing-label">Analyse en cours…</span>
+    </div>
+
+    <!-- Résultat -->
+    <div class="result-box" id="result-box">
+      <div class="result-header">
+        <span id="result-icon">✅</span>
+        <span id="result-summary"></span>
+      </div>
+      <div class="result-body">
+        <div>
+          <div class="field-label">Type</div>
+          <div class="field-value" id="result-type"></div>
+        </div>
+        <div>
+          <div class="field-label">Quand</div>
+          <div class="field-value" id="result-when"></div>
+        </div>
+        <div class="field-full">
+          <div class="field-label">Titre</div>
+          <div class="field-value" id="result-title"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Erreur -->
+    <div class="error-box" id="error-box"></div>
+
+    <!-- Reset -->
+    <button class="reset-btn" id="reset-btn" onclick="reset()">↩ Nouvelle note</button>
+  </div>
+
+  <!-- Historique -->
+  <div class="history" id="history-section" style="display:none">
+    <div class="history-label">Cette session</div>
+    <div id="history-list"></div>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">Changer de clé API</button>
+  <footer>Agent vocal · Groq + Google Calendar</footer>
+</div>
+
+<script>
+const GOOGLE_CALENDAR_MCP = "https://calendarmcp.googleapis.com/mcp/v1";
+const STORAGE_KEY = "groq_api_key";
+
+const TODAY = new Date().toLocaleDateString("fr-FR", {
+  weekday:"long", year:"numeric", month:"long", day:"numeric"
+});
+
+const SYSTEM_PROMPT = `Tu es l'agent personnel d'Allan, coach de préparation physique dans le football.
+Tu analyses des notes vocales en français et tu extrais des rappels ou des tâches.
+
+Réponds UNIQUEMENT en JSON valide, sans balises markdown, sans backticks.
+
+{
+  "type": "rappel" | "tâche" | "note" | "inconnu",
+  "titre": "titre court",
+  "description": "description complète",
+  "date_heure": "ISO 8601 si mentionné, null sinon",
+  "date_heure_lisible": "ex: demain à 16h, null sinon",
+  "résumé_confirmation": "phrase courte de confirmation",
+  "confiance": "haute" | "moyenne" | "faible"
+}
+
+Aujourd'hui : ${TODAY}.
+Sois indulgent sur les imprécisions vocales et la ponctuation.`;
+
+// ── État ──
+let GROQ_KEY = "";
+let isRecording = false;
+let recognition = null;
+let finalTranscript = "";
+let currentTranscript = "";
+let timerInterval = null;
+let seconds = 0;
+
+const $ = id => document.getElementById(id);
+
+// ── Init : clé déjà sauvegardée ? ──
+window.addEventListener("load", () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    GROQ_KEY = saved;
+    showApp();
+  }
+});
+
+function saveKey() {
+  const key = $("groq-key-input").value.trim();
+  if (!key.startsWith("gsk_")) {
+    $("setup-error").style.display = "block";
+    return;
+  }
+  GROQ_KEY = key;
+  localStorage.setItem(STORAGE_KEY, key);
+  showApp();
+}
+
+function showApp() {
+  $("setup-screen").style.display = "none";
+  $("app-screen").style.display = "flex";
+}
+
+function logout() {
+  localStorage.removeItem(STORAGE_KEY);
+  GROQ_KEY = "";
+  $("app-screen").style.display = "none";
+  $("setup-screen").style.display = "flex";
+  $("groq-key-input").value = "";
+}
+
+// ── Modes ──
+function switchMode(m) {
+  $("voice-zone").style.display = m === "voice" ? "flex" : "none";
+  $("text-zone").style.display = m === "text" ? "block" : "none";
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    t.classList.toggle("active", (i === 0) === (m === "voice"));
+  });
+  $("mic-error-box").style.display = "none";
+}
+
+// ── UI ──
+function showProcessing(label) {
+  $("processing").style.display = "flex";
+  $("processing-label").textContent = label;
+}
+function hideProcessing() { $("processing").style.display = "none"; }
+
+function showTranscript(text) {
+  $("transcript-box").style.display = "block";
+  $("transcript-text").textContent = `« ${text} »`;
+}
+
+function showError(msg) {
+  $("error-box").style.display = "block";
+  $("error-box").textContent = "⚠️ " + msg;
+  $("reset-btn").style.display = "block";
+}
+
+function showResult(parsed, calOk) {
+  $("result-box").style.display = "block";
+  $("result-icon").textContent = calOk ? "✅" : "📝";
+  $("result-summary").textContent = parsed.résumé_confirmation;
+  $("result-type").textContent =
+    parsed.type === "rappel" ? "🔔 Rappel" :
+    parsed.type === "tâche" ? "✅ Tâche" : "📝 Note";
+  $("result-when").textContent = parsed.date_heure_lisible ? "📅 " + parsed.date_heure_lisible : "—";
+  $("result-title").textContent = parsed.titre;
+  $("reset-btn").style.display = "block";
+}
+
+function addToHistory(parsed) {
+  const list = $("history-list");
+  const el = document.createElement("div");
+  el.className = "history-item";
+  el.innerHTML = `<div style="font-size:20px">🔔</div>
+    <div>
+      <div class="history-title">${parsed.titre}</div>
+      <div class="history-sub">${parsed.date_heure_lisible || "Sans date"} · ${new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</div>
+    </div>`;
+  list.prepend(el);
+  $("history-section").style.display = "block";
+}
+
+function reset() {
+  currentTranscript = "";
+  $("transcript-box").style.display = "none";
+  $("processing").style.display = "none";
+  $("result-box").style.display = "none";
+  $("error-box").style.display = "none";
+  $("reset-btn").style.display = "none";
+  $("mic-btn").disabled = false;
+  $("mic-hint").style.display = "block";
+  $("send-btn").disabled = false;
+}
+
+// ── Micro ──
+async function toggleRecording() {
+  if (isRecording) { stopRecording(); return; }
+  await startRecording();
+}
+
+async function startRecording() {
+  $("mic-error-box").style.display = "none";
+  $("mic-hint").style.display = "none";
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { $("mic-error-box").style.display = "block"; return; }
+
+  try {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch(e) {
+    $("mic-error-box").style.display = "block";
+    $("mic-hint").style.display = "block";
+    return;
+  }
+
+  recognition = new SR();
+  recognition.lang = "fr-FR";
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  finalTranscript = "";
+
+  recognition.onresult = e => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + " ";
+      else interim += e.results[i][0].transcript;
+    }
+    currentTranscript = finalTranscript + interim;
+    showTranscript(currentTranscript);
+  };
+
+  recognition.onerror = e => {
+    if (e.error === "not-allowed") $("mic-error-box").style.display = "block";
+    else if (e.error !== "no-speech") showError("Erreur micro : " + e.error);
+    stopRecordingUI();
+  };
+
+  recognition.start();
+  isRecording = true;
+  seconds = 0;
+
+  $("mic-btn").textContent = "⏹";
+  $("mic-btn").classList.add("recording");
+  $("mic-ring").classList.add("active");
+  $("wave").classList.add("active");
+  $("timer").style.display = "inline";
+
+  timerInterval = setInterval(() => {
+    seconds++;
+    $("timer").textContent =
+      String(Math.floor(seconds/60)).padStart(2,"0") + ":" +
+      String(seconds%60).padStart(2,"0");
+  }, 1000);
+}
+
+function stopRecordingUI() {
+  isRecording = false;
+  clearInterval(timerInterval);
+  $("mic-btn").textContent = "🎙";
+  $("mic-btn").classList.remove("recording");
+  $("mic-ring").classList.remove("active");
+  $("wave").classList.remove("active");
+  $("timer").style.display = "none";
+}
+
+function stopRecording() {
+  recognition?.stop();
+  stopRecordingUI();
+  if (currentTranscript.trim()) analyze(currentTranscript);
+  else $("mic-hint").style.display = "block";
+}
+
+function retryMic() {
+  $("mic-error-box").style.display = "none";
+  startRecording();
+}
+
+// ── Texte ──
+function submitText() {
+  const val = $("text-input").value.trim();
+  if (!val) return;
+  showTranscript(val);
+  currentTranscript = val;
+  $("text-input").value = "";
+  $("send-btn").disabled = true;
+  analyze(val);
+}
+
+// ── Analyse via Groq ──
+async function analyze(text) {
+  showProcessing("Analyse de ta note…");
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${GROQ_KEY}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: text }
+        ],
+        temperature: 0.2,
+        max_tokens: 500
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = data.choices?.[0]?.message?.content || "";
+    const obj = JSON.parse(raw.replace(/```json|```/g,"").trim());
+
+    if (obj.type !== "inconnu") {
+      await createCalendarEvent(obj, text);
+    } else {
+      hideProcessing();
+      showResult(obj, false);
+    }
+  } catch(e) {
+    hideProcessing();
+    showError("Erreur d'analyse : " + e.message);
+  }
+}
+
+// ── Google Calendar via lien natif ──
+function toGCalDate(date) {
+  // Format YYYYMMDDTHHMMSS pour Google Calendar
+  return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+async function createCalendarEvent(obj, originalText) {
+  showProcessing("Ouverture de Google Calendar…");
+
+  try {
+    let startDate = obj.date_heure ? new Date(obj.date_heure) : null;
+    if (!startDate || isNaN(startDate)) {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() + 1);
+      startDate.setHours(9, 0, 0, 0);
+    }
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1h
+
+    const params = new URLSearchParams({
+      action: "TEMPLATE",
+      text: obj.titre,
+      details: obj.description || originalText,
+      dates: toGCalDate(startDate) + "/" + toGCalDate(endDate),
+      sf: "true",
+      output: "xml"
+    });
+
+    const url = "https://calendar.google.com/calendar/render?" + params.toString();
+
+    hideProcessing();
+    addToHistory(obj);
+    showResult(obj, true);
+
+    // Ouvre Google Calendar après 800ms (laisse l'UI s'afficher)
+    setTimeout(() => { window.open(url, "_blank"); }, 800);
+
+  } catch(e) {
+    hideProcessing();
+    showError("Erreur : " + e.message);
+  }
+}
+</script>
+</body>
+</html>
